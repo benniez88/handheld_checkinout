@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Handheld Check-in/Out</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root { --kp:#0b5bd3; }
+    .kp       { background:var(--kp); color:#fff; }
+    .card     { border-radius:1rem; box-shadow:0 8px 24px rgba(2,6,23,.08); background:#fff; }
+    .kpi      { text-align:center; padding:1rem; }
+    .pill     { padding:.25rem .6rem; border-radius:999px; font-size:.82rem; }
+    .input    { width:100%; border:1px solid #e2e8f0; border-radius:0.75rem; padding:0.5rem; }
+    .label    { font-size:.9rem; color:#64748b; }
+    .divider  { height:1px; background:#eef2f7; }
+
+    /* ปุ่ม */
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+           padding:.5rem 1rem; border-radius:.75rem; font-weight:600;
+           transition:transform .15s ease, box-shadow .15s ease, background .15s ease; }
+    .btn-kp { background:#0b5bd3; color:#fff; box-shadow:0 4px 12px rgba(11,91,211,.3); }
+    .btn-kp:hover { background:#0949aa; }
+    .btn-kp:active { transform:scale(.96); box-shadow:inset 0 2px 6px rgba(11,91,211,.4); }
+
+    .btn-ghost { border:1px solid #cbd5e1; background:#fff; color:#334155; box-shadow:0 2px 6px rgba(0,0,0,.05);}
+    .btn-ghost:hover { background:#f8fafc; }
+    .btn-ghost:active { transform:scale(.96); box-shadow:inset 0 2px 6px rgba(0,0,0,.08); }
+
+    /* ปุ่มอันตรายแบบหรู */
+    .btn-danger { border:1px solid #fecaca; color:#991b1b; background:#fff5f5; }
+    .btn-danger:hover { background:#fee2e2; }
+    .btn-danger:active { transform:scale(.96); box-shadow:inset 0 2px 6px rgba(185,28,28,.15); }
+
+    /* Toast */
+    #toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:50; }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen">
+  <!-- Header -->
+  <header class="kp">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-xl font-semibold tracking-wide">HANDHELD CHECK-IN/OUT</h1>
+      <div id="now" class="text-sm opacity-90"></div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-5 space-y-6">
+    <!-- KPIs -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="card kpi"><div class="text-slate-500">เครื่องทั้งหมด</div><div id="kpiTotal" class="text-3xl font-bold">-</div></div>
+      <div class="card kpi"><div class="text-slate-500">ว่างในตู้</div><div id="kpiFree" class="text-3xl font-bold text-green-600">-</div></div>
+      <div class="card kpi"><div class="text-slate-500">ค้างถือ</div><div id="kpiHold" class="text-3xl font-bold text-red-600">-</div></div>
+      <div class="card kpi"><div class="text-slate-500">สถานะซ่อม</div><div id="kpiRepair" class="text-3xl font-bold text-amber-600">-</div></div>
+    </section>
+
+    <!-- Actions -->
+    <section class="grid md:grid-cols-2 gap-5">
+      <!-- Checkout -->
+      <div class="card p-5 space-y-4">
+        <h2 class="text-lg font-semibold">เบิกเครื่อง (Check-out)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div class="label">หมายเลขเครื่อง</div>
+            <select id="coDevice" class="input"></select>
+          </div>
+          <div>
+            <div class="label">ร้านค้า</div>
+            <select id="coShop" class="input"></select>
+          </div>
+          <div class="md:col-span-2 lg:col-span-1">
+            <div class="label">รหัสพนักงาน</div>
+            <input id="coEmp" class="input" placeholder="เช่น 1009" />
+          </div>
+        </div>
+        <button id="btnCo" class="btn btn-kp w-full">
+          <i data-lucide="check-circle"></i> ยืนยันเบิก
+        </button>
+        <div id="coMsg" class="text-sm text-red-600"></div>
+      </div>
+
+      <!-- Checkin -->
+      <div class="card p-5 space-y-4">
+        <h2 class="text-lg font-semibold">คืนเครื่อง (Check-in)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div class="label">หมายเลขเครื่อง</div>
+            <select id="ciDevice" class="input"></select>
+          </div>
+          <div>
+            <div class="label">รหัสพนักงาน (ถ้ามี)</div>
+            <input id="ciEmp" class="input" placeholder="ผู้คืน" />
+          </div>
+          <div class="md:col-span-2">
+            <div class="label">หมายเหตุ</div>
+            <input id="ciNote" class="input" placeholder="อาการเสีย/อื่นๆ" />
+          </div>
+          <div class="md:col-span-2 flex items-center gap-2">
+            <input id="ciRepair" type="checkbox" />
+            <label for="ciRepair" class="text-sm">ติดสถานะ “ซ่อม” หลังคืน</label>
+          </div>
+        </div>
+        <button id="btnCi" class="btn btn-ghost w-full">
+          <i data-lucide="corner-up-left"></i> ยืนยันคืน
+        </button>
+        <div id="ciMsg" class="text-sm text-red-600"></div>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section class="card p-5">
+      <div class="flex flex-wrap gap-2 items-center justify-between">
+        <h2 class="text-lg font-semibold">สถานะเครื่องปัจจุบัน</h2>
+        <div class="flex gap-2">
+          <button id="btnRefresh" class="btn btn-ghost">
+            <i data-lucide="refresh-cw"></i> รีเฟรช
+          </button>
+          <button id="btnClearAll" class="btn btn-danger">
+            <i data-lucide="shield-alert"></i> Clear All
+          </button>
+        </div>
+      </div>
+      <div class="divider my-3"></div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-left text-slate-500">
+            <tr><th class="py-2">เครื่อง</th><th>สถานะ</th><th>ผู้ถือ</th><th>ร้าน</th><th>ออก</th><th>เข้า</th><th>หมายเหตุ</th></tr>
+          </thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="text-center text-xs text-slate-400 py-6">© King Power — Handheld Ops</footer>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden">
+    <div id="toastMsg" class="px-4 py-2 rounded-xl text-white shadow-lg"></div>
+  </div>
+
+  <script>
+    const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz06Fb0bkMKFuZpgboMfFIveksmSrMm5Bcha8FW26d8r9MOF8K_p7v2x617fktym03n/exec';
+
+    const $ = s => document.querySelector(s);
+    const fmt = v => v ? new Date(v).toLocaleString('th-TH') : '';
+    const showToast = (msg, type='ok') => {
+      const el = $('#toast'); const box = $('#toastMsg');
+      box.textContent = msg;
+      box.style.background = type==='ok' ? '#16a34a' : '#dc2626';
+      el.classList.remove('hidden');
+      setTimeout(()=> el.classList.add('hidden'), 2200);
+    };
+
+    async function apiGet(action){
+      const res = await fetch(`${GAS_WEBAPP_URL}?action=${action}`);
+      const data = await res.json();
+      if(!data.ok) throw new Error(data.error||'error');
+      return data;
+    }
+    async function apiPost(action, params){
+      const body = new URLSearchParams(Object.assign({action}, params));
+      const res = await fetch(GAS_WEBAPP_URL, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body});
+      const data = await res.json();
+      if(!data.ok) throw new Error(data.error||'error');
+      return data;
+    }
+
+    function paint(devices){
+      $('#kpiTotal').textContent = devices.length;
+      const hold = devices.filter(d=>d.status==='ค้างถือ').length;
+      const free = devices.filter(d=>!String(d.status||'').trim() || d.status==='ว่าง').length;
+      const rep  = devices.filter(d=>d.status==='ซ่อม').length;
+      $('#kpiHold').textContent = hold;
+      $('#kpiFree').textContent = free;
+      $('#kpiRepair').textContent = rep;
+
+      $('#coDevice').innerHTML = devices.map(d=>`<option value="${d.code}">${d.code}</option>`).join('');
+      $('#ciDevice').innerHTML = devices.map(d=>`<option value="${d.code}">${d.code}</option>`).join('');
+
+      $('#tblBody').innerHTML = devices.map(d=>`
+        <tr class="border-t">
+          <td class="py-2 font-medium">${d.code}</td>
+          <td><span class="pill ${d.status==='ค้างถือ'?'bg-red-100 text-red-700':d.status==='ซ่อม'?'bg-amber-100 text-amber-700':'bg-green-100 text-green-700'}">${d.status||'ว่าง'}</span></td>
+          <td>${d.holder_name||''} ${d.holder_emp_id?`(${d.holder_emp_id})`:''}</td>
+          <td>${d.shop||''}</td>
+          <td>${fmt(d.last_out)}</td>
+          <td>${fmt(d.last_in)}</td>
+          <td>${d.note||''}</td>
+        </tr>`).join('');
+    }
+
+    async function loadInitial(){
+      $('#now').textContent = new Date().toLocaleString('th-TH');
+      try{
+        const { shops, devices } = await apiGet('init');
+        $('#coShop').innerHTML = shops.map(s=>`<option value="${s}">${s}</option>`).join('');
+        paint(devices);
+      }catch(e){ showToast('โหลดข้อมูลไม่สำเร็จ: '+e.message,'err'); }
+    }
+
+    // Actions
+    $('#btnRefresh').addEventListener('click', async ()=>{
+      try{ const { devices } = await apiGet('state'); paint(devices); showToast('อัปเดตข้อมูลแล้ว'); }
+      catch(e){ showToast('รีเฟรชไม่สำเร็จ: '+e.message,'err'); }
+    });
+
+    $('#btnCo').addEventListener('click', async ()=>{
+      const payload = { device_code:$('#coDevice').value, shop:$('#coShop').value, emp_id:$('#coEmp').value.trim() };
+      if(!payload.emp_id) { $('#coEmp').focus(); return showToast('กรอกรหัสพนักงานก่อน','err'); }
+      try{ await apiPost('checkout', payload); showToast('เบิกสำเร็จ'); $('#coEmp').value=''; $('#btnRefresh').click(); }
+      catch(e){ showToast(e.message,'err'); }
+    });
+
+    $('#btnCi').addEventListener('click', async ()=>{
+      const payload = { device_code:$('#ciDevice').value, emp_id:$('#ciEmp').value.trim(), note:$('#ciNote').value.trim(), markRepair:$('#ciRepair').checked };
+      try{ await apiPost('checkin', payload); showToast('คืนสำเร็จ'); $('#ciEmp').value=''; $('#ciNote').value=''; $('#ciRepair').checked=false; $('#btnRefresh').click(); }
+      catch(e){ showToast(e.message,'err'); }
+    });
+
+    // 🔒 Clear All (ต้องใส่รหัสผ่าน 6515)
+    $('#btnClearAll').addEventListener('click', async ()=>{
+      if(!confirm('ยืนยันจะ Clear All? การกระทำนี้จะรีเซ็ตสถานะอุปกรณ์ทั้งหมดเป็น “ว่าง”')) return;
+      const pwd = prompt('กรุณาใส่รหัสผ่านผู้ดูแล:');
+      if(pwd !== '6515'){ showToast('รหัสผ่านไม่ถูกต้อง','err'); return; }
+      try{
+        await apiPost('clearAll', {});     // ต้องมี action นี้ใน Code.gs (ดูหัวข้อ 2 ด้านล่าง)
+        showToast('เคลียร์ข้อมูลสำเร็จ');
+        $('#btnRefresh').click();
+      }catch(e){
+        showToast('ล้มเหลว: '+e.message, 'err');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', ()=>{ loadInitial(); lucide.createIcons(); });
+  </script>
+</body>
+</html>
