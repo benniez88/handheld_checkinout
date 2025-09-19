@@ -16,7 +16,7 @@
     .label    { font-size:.9rem; color:#64748b; }
     .divider  { height:1px; background:#eef2f7; }
 
-    /* ปุ่ม */
+    /* ปุ่มหลัก */
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
            padding:.5rem 1rem; border-radius:.75rem; font-weight:600;
            transition:transform .15s ease, box-shadow .15s ease, background .15s ease; }
@@ -28,10 +28,16 @@
     .btn-ghost:hover { background:#f8fafc; }
     .btn-ghost:active { transform:scale(.96); box-shadow:inset 0 2px 6px rgba(0,0,0,.08); }
 
-    /* ปุ่มอันตรายแบบหรู */
+    /* ปุ่มอันตราย */
     .btn-danger { border:1px solid #fecaca; color:#991b1b; background:#fff5f5; }
     .btn-danger:hover { background:#fee2e2; }
     .btn-danger:active { transform:scale(.96); box-shadow:inset 0 2px 6px rgba(185,28,28,.15); }
+
+    /* ปุ่มเล็กในตาราง */
+    .btn-mini { padding:.35rem .6rem; border-radius:.6rem; font-weight:600; font-size:.8rem; }
+    .btn-mini-kp { background:#0b5bd3; color:#fff; }
+    .btn-mini-kp:hover { background:#0949aa; }
+    .btn-mini-kp:active { transform:scale(.96); }
 
     /* Toast */
     #toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:50; }
@@ -125,7 +131,16 @@
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="text-left text-slate-500">
-            <tr><th class="py-2">เครื่อง</th><th>สถานะ</th><th>ผู้ถือ</th><th>ร้าน</th><th>ออก</th><th>เข้า</th><th>หมายเหตุ</th></tr>
+            <tr>
+              <th class="py-2">เครื่อง</th>
+              <th>สถานะ</th>
+              <th>ผู้ถือ</th>
+              <th>ร้าน</th>
+              <th>ออก</th>
+              <th>เข้า</th>
+              <th>หมายเหตุ</th>
+              <th>การกระทำ</th>
+            </tr>
           </thead>
           <tbody id="tblBody"></tbody>
         </table>
@@ -167,6 +182,18 @@
       return data;
     }
 
+    function renderActionCell(d){
+      // แสดงปุ่ม “คืนทันที” เฉพาะสถานะค้างถือ
+      if(d.status === 'ค้างถือ'){
+        return `
+          <button class="btn-mini btn-mini-kp" data-quick="${d.code}" data-emp="${d.holder_emp_id||''}">
+            <i data-lucide="check-square"></i> คืนทันที
+          </button>
+        `;
+      }
+      return '';
+    }
+
     function paint(devices){
       $('#kpiTotal').textContent = devices.length;
       const hold = devices.filter(d=>d.status==='ค้างถือ').length;
@@ -188,7 +215,26 @@
           <td>${fmt(d.last_out)}</td>
           <td>${fmt(d.last_in)}</td>
           <td>${d.note||''}</td>
+          <td>${renderActionCell(d)}</td>
         </tr>`).join('');
+
+      // bind quick-return buttons
+      document.querySelectorAll('button[data-quick]').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          const device_code = btn.getAttribute('data-quick');
+          const emp_id = btn.getAttribute('data-emp') || '';
+          try{
+            await apiPost('checkin', { device_code, emp_id, note:'', markRepair:false });
+            showToast(`คืนเครื่อง ${device_code} แล้ว`);
+            $('#btnRefresh').click();
+          }catch(e){
+            showToast('คืนไม่สำเร็จ: '+e.message,'err');
+          }
+        });
+      });
+
+      // re-draw icons (เพราะเพิ่งสร้างปุ่มใน DOM)
+      lucide.createIcons();
     }
 
     async function loadInitial(){
@@ -225,7 +271,7 @@
       const pwd = prompt('กรุณาใส่รหัสผ่านผู้ดูแล:');
       if(pwd !== '6515'){ showToast('รหัสผ่านไม่ถูกต้อง','err'); return; }
       try{
-        await apiPost('clearAll', {});     // ต้องมี action นี้ใน Code.gs (ดูหัวข้อ 2 ด้านล่าง)
+        await apiPost('clearAll', {});
         showToast('เคลียร์ข้อมูลสำเร็จ');
         $('#btnRefresh').click();
       }catch(e){
