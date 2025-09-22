@@ -16,24 +16,19 @@
     .label    { font-size:.9rem; color:#64748b; }
     .divider  { height:1px; background:#eef2f7; }
 
-    /* ปุ่มหลัก */
+    /* ปุ่ม */
     .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
            padding:.5rem 1rem; border-radius:.75rem; font-weight:600;
            transition:transform .15s ease, box-shadow .15s ease, background .15s ease; }
     .btn-kp { background:#0b5bd3; color:#fff; box-shadow:0 4px 12px rgba(11,91,211,.3); }
     .btn-kp:hover { background:#0949aa; }
     .btn-kp:active { transform:scale(.96); box-shadow:inset 0 2px 6px rgba(11,91,211,.4); }
-
     .btn-ghost { border:1px solid #cbd5e1; background:#fff; color:#334155; box-shadow:0 2px 6px rgba(0,0,0,.05);}
     .btn-ghost:hover { background:#f8fafc; }
     .btn-ghost:active { transform:scale(.96); box-shadow:inset 0 2px 6px rgba(0,0,0,.08); }
-
-    /* ปุ่มอันตราย */
     .btn-danger { border:1px solid #fecaca; color:#991b1b; background:#fff5f5; }
     .btn-danger:hover { background:#fee2e2; }
     .btn-danger:active { transform:scale(.96); box-shadow:inset 0 2px 6px rgba(185,28,28,.15); }
-
-    /* ปุ่มเล็กในตาราง */
     .btn-mini { padding:.35rem .6rem; border-radius:.6rem; font-weight:600; font-size:.8rem; }
     .btn-mini-kp { background:#0b5bd3; color:#fff; }
     .btn-mini-kp:hover { background:#0949aa; }
@@ -53,12 +48,31 @@
   </header>
 
   <main class="max-w-6xl mx-auto px-4 py-5 space-y-6">
-    <!-- KPIs -->
+    <!-- KPIs รวม -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="card kpi"><div class="text-slate-500">เครื่องทั้งหมด</div><div id="kpiTotal" class="text-3xl font-bold">-</div></div>
       <div class="card kpi"><div class="text-slate-500">ว่างในตู้</div><div id="kpiFree" class="text-3xl font-bold text-green-600">-</div></div>
       <div class="card kpi"><div class="text-slate-500">ค้างถือ</div><div id="kpiHold" class="text-3xl font-bold text-red-600">-</div></div>
       <div class="card kpi"><div class="text-slate-500">สถานะซ่อม</div><div id="kpiRepair" class="text-3xl font-bold text-amber-600">-</div></div>
+    </section>
+
+    <!-- KPIs ตามประเภท -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4" id="typeKpi" style="display:none">
+      <div class="card kpi">
+        <div class="text-slate-500">Handheld</div>
+        <div id="kpiHH" class="text-2xl font-bold">-</div>
+        <div class="text-xs text-slate-500">ว่าง <span id="kpiHHFree">-</span> • ค้างถือ <span id="kpiHHHold">-</span> • ซ่อม <span id="kpiHHRepair">-</span></div>
+      </div>
+      <div class="card kpi">
+        <div class="text-slate-500">Sunmi</div>
+        <div id="kpiSM" class="text-2xl font-bold">-</div>
+        <div class="text-xs text-slate-500">ว่าง <span id="kpiSMFree">-</span> • ค้างถือ <span id="kpiSMHold">-</span> • ซ่อม <span id="kpiSMRepair">-</span></div>
+      </div>
+      <div class="card kpi">
+        <div class="text-slate-500">Tablet</div>
+        <div id="kpiTB" class="text-2xl font-bold">-</div>
+        <div class="text-xs text-slate-500">ว่าง <span id="kpiTBFree">-</span> • ค้างถือ <span id="kpiTBHold">-</span> • ซ่อม <span id="kpiTBRepair">-</span></div>
+      </div>
     </section>
 
     <!-- Actions -->
@@ -67,22 +81,11 @@
       <div class="card p-5 space-y-4">
         <h2 class="text-lg font-semibold">เบิกเครื่อง (Check-out)</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <div class="label">หมายเลขเครื่อง</div>
-            <select id="coDevice" class="input"></select>
-          </div>
-          <div>
-            <div class="label">ร้านค้า</div>
-            <select id="coShop" class="input"></select>
-          </div>
-          <div class="md:col-span-2 lg:col-span-1">
-            <div class="label">รหัสพนักงาน</div>
-            <input id="coEmp" class="input" placeholder="เช่น 1009" />
-          </div>
+          <div><div class="label">หมายเลขเครื่อง</div><select id="coDevice" class="input"></select></div>
+          <div><div class="label">ร้านค้า</div><select id="coShop" class="input"></select></div>
+          <div class="md:col-span-2 lg:col-span-1"><div class="label">รหัสพนักงาน</div><input id="coEmp" class="input" placeholder="เช่น 1009" /></div>
         </div>
-        <button id="btnCo" class="btn btn-kp w-full">
-          <i data-lucide="check-circle"></i> ยืนยันเบิก
-        </button>
+        <button id="btnCo" class="btn btn-kp w-full"><i data-lucide="check-circle"></i> ยืนยันเบิก</button>
         <div id="coMsg" class="text-sm text-red-600"></div>
       </div>
 
@@ -90,26 +93,12 @@
       <div class="card p-5 space-y-4">
         <h2 class="text-lg font-semibold">คืนเครื่อง (Check-in)</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <div class="label">หมายเลขเครื่อง</div>
-            <select id="ciDevice" class="input"></select>
-          </div>
-          <div>
-            <div class="label">รหัสพนักงาน (ถ้ามี)</div>
-            <input id="ciEmp" class="input" placeholder="ผู้คืน" />
-          </div>
-          <div class="md:col-span-2">
-            <div class="label">หมายเหตุ</div>
-            <input id="ciNote" class="input" placeholder="อาการเสีย/อื่นๆ" />
-          </div>
-          <div class="md:col-span-2 flex items-center gap-2">
-            <input id="ciRepair" type="checkbox" />
-            <label for="ciRepair" class="text-sm">ติดสถานะ “ซ่อม” หลังคืน</label>
-          </div>
+          <div><div class="label">หมายเลขเครื่อง</div><select id="ciDevice" class="input"></select></div>
+          <div><div class="label">รหัสพนักงาน (ถ้ามี)</div><input id="ciEmp" class="input" placeholder="ผู้คืน" /></div>
+          <div class="md:col-span-2"><div class="label">หมายเหตุ</div><input id="ciNote" class="input" placeholder="อาการเสีย/อื่นๆ" /></div>
+          <div class="md:col-span-2 flex items-center gap-2"><input id="ciRepair" type="checkbox" /><label for="ciRepair" class="text-sm">ติดสถานะ “ซ่อม” หลังคืน</label></div>
         </div>
-        <button id="btnCi" class="btn btn-ghost w-full">
-          <i data-lucide="corner-up-left"></i> ยืนยันคืน
-        </button>
+        <button id="btnCi" class="btn btn-ghost w-full"><i data-lucide="corner-up-left"></i> ยืนยันคืน</button>
         <div id="ciMsg" class="text-sm text-red-600"></div>
       </div>
     </section>
@@ -119,12 +108,8 @@
       <div class="flex flex-wrap gap-2 items-center justify-between">
         <h2 class="text-lg font-semibold">สถานะเครื่องปัจจุบัน</h2>
         <div class="flex gap-2">
-          <button id="btnRefresh" class="btn btn-ghost">
-            <i data-lucide="refresh-cw"></i> รีเฟรช
-          </button>
-          <button id="btnClearAll" class="btn btn-danger">
-            <i data-lucide="shield-alert"></i> Clear All
-          </button>
+          <button id="btnRefresh" class="btn btn-ghost"><i data-lucide="refresh-cw"></i> รีเฟรช</button>
+          <button id="btnClearAll" class="btn btn-danger"><i data-lucide="shield-alert"></i> Clear All</button>
         </div>
       </div>
       <div class="divider my-3"></div>
@@ -151,64 +136,76 @@
   </main>
 
   <!-- Toast -->
-  <div id="toast" class="hidden">
-    <div id="toastMsg" class="px-4 py-2 rounded-xl text-white shadow-lg"></div>
-  </div>
+  <div id="toast" class="hidden"><div id="toastMsg" class="px-4 py-2 rounded-xl text-white shadow-lg"></div></div>
 
   <script>
-    const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbz06Fb0bkMKFuZpgboMfFIveksmSrMm5Bcha8FW26d8r9MOF8K_p7v2x617fktym03n/exec';
+    const GAS_WEBAPP_URL = 'PASTE_YOUR_DEPLOYMENT_URL_HERE';
 
     const $ = s => document.querySelector(s);
     const fmt = v => v ? new Date(v).toLocaleString('th-TH') : '';
     const showToast = (msg, type='ok') => {
       const el = $('#toast'); const box = $('#toastMsg');
-      box.textContent = msg;
-      box.style.background = type==='ok' ? '#16a34a' : '#dc2626';
-      el.classList.remove('hidden');
-      setTimeout(()=> el.classList.add('hidden'), 2200);
+      box.textContent = msg; box.style.background = type==='ok' ? '#16a34a' : '#dc2626';
+      el.classList.remove('hidden'); setTimeout(()=> el.classList.add('hidden'), 2200);
     };
 
     async function apiGet(action){
-      const res = await fetch(`${GAS_WEBAPP_URL}?action=${action}`);
-      const data = await res.json();
-      if(!data.ok) throw new Error(data.error||'error');
-      return data;
+      const res = await fetch(`${GAS_WEBAPP_URL}?action=${action}`); const data = await res.json();
+      if(!data.ok) throw new Error(data.error||'error'); return data;
     }
     async function apiPost(action, params){
       const body = new URLSearchParams(Object.assign({action}, params));
       const res = await fetch(GAS_WEBAPP_URL, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body});
-      const data = await res.json();
-      if(!data.ok) throw new Error(data.error||'error');
-      return data;
+      const data = await res.json(); if(!data.ok) throw new Error(data.error||'error'); return data;
+    }
+
+    function sumByType(devs, type){
+      const list = devs.filter(d => (d.type||'Handheld') === type);
+      const total = list.length;
+      const free  = list.filter(d => !String(d.status||'').trim() || d.status==='ว่าง').length;
+      const hold  = list.filter(d => d.status==='ค้างถือ').length;
+      const rep   = list.filter(d => d.status==='ซ่อม').length;
+      return { total, free, hold, rep };
     }
 
     function renderActionCell(d){
-      // แสดงปุ่ม “คืนทันที” เฉพาะสถานะค้างถือ
       if(d.status === 'ค้างถือ'){
-        return `
-          <button class="btn-mini btn-mini-kp" data-quick="${d.code}" data-emp="${d.holder_emp_id||''}">
-            <i data-lucide="check-square"></i> คืนทันที
-          </button>
-        `;
+        return `<button class="btn-mini btn-mini-kp" data-quick="${d.code}" data-emp="${d.holder_emp_id||''}">
+                  <i data-lucide="check-square"></i> คืนทันที
+                </button>`;
       }
       return '';
     }
 
     function paint(devices){
+      // KPI รวม
       $('#kpiTotal').textContent = devices.length;
       const hold = devices.filter(d=>d.status==='ค้างถือ').length;
       const free = devices.filter(d=>!String(d.status||'').trim() || d.status==='ว่าง').length;
       const rep  = devices.filter(d=>d.status==='ซ่อม').length;
-      $('#kpiHold').textContent = hold;
-      $('#kpiFree').textContent = free;
-      $('#kpiRepair').textContent = rep;
+      $('#kpiHold').textContent = hold; $('#kpiFree').textContent = free; $('#kpiRepair').textContent = rep;
 
+      // KPI ตามประเภท
+      const hh = sumByType(devices,'Handheld');
+      const sm = sumByType(devices,'Sunmi');
+      const tb = sumByType(devices,'Tablet');
+      const showType = (hh.total+sm.total+tb.total)>0;
+      document.getElementById('typeKpi').style.display = showType ? '' : 'none';
+      $('#kpiHH').textContent=hh.total; $('#kpiHHFree').textContent=hh.free; $('#kpiHHHold').textContent=hh.hold; $('#kpiHHRepair').textContent=hh.rep;
+      $('#kpiSM').textContent=sm.total; $('#kpiSMFree').textContent=sm.free; $('#kpiSMHold').textContent=sm.hold; $('#kpiSMRepair').textContent=sm.rep;
+      $('#kpiTB').textContent=tb.total; $('#kpiTBFree').textContent=tb.free; $('#kpiTBHold').textContent=tb.hold; $('#kpiTBRepair').textContent=tb.rep;
+
+      // Dropdowns
       $('#coDevice').innerHTML = devices.map(d=>`<option value="${d.code}">${d.code}</option>`).join('');
       $('#ciDevice').innerHTML = devices.map(d=>`<option value="${d.code}">${d.code}</option>`).join('');
 
+      // Table
       $('#tblBody').innerHTML = devices.map(d=>`
         <tr class="border-t">
-          <td class="py-2 font-medium">${d.code}</td>
+          <td class="py-2 font-medium">
+            ${d.code}
+            <div class="text-xs text-slate-400">${d.type||'Handheld'}</div>
+          </td>
           <td><span class="pill ${d.status==='ค้างถือ'?'bg-red-100 text-red-700':d.status==='ซ่อม'?'bg-amber-100 text-amber-700':'bg-green-100 text-green-700'}">${d.status||'ว่าง'}</span></td>
           <td>${d.holder_name||''} ${d.holder_emp_id?`(${d.holder_emp_id})`:''}</td>
           <td>${d.shop||''}</td>
@@ -223,17 +220,12 @@
         btn.addEventListener('click', async ()=>{
           const device_code = btn.getAttribute('data-quick');
           const emp_id = btn.getAttribute('data-emp') || '';
-          try{
-            await apiPost('checkin', { device_code, emp_id, note:'', markRepair:false });
-            showToast(`คืนเครื่อง ${device_code} แล้ว`);
-            $('#btnRefresh').click();
-          }catch(e){
-            showToast('คืนไม่สำเร็จ: '+e.message,'err');
-          }
+          try{ await apiPost('checkin', { device_code, emp_id, note:'', markRepair:false });
+               showToast(`คืนเครื่อง ${device_code} แล้ว`); $('#btnRefresh').click(); }
+          catch(e){ showToast('คืนไม่สำเร็จ: '+e.message,'err'); }
         });
       });
 
-      // re-draw icons (เพราะเพิ่งสร้างปุ่มใน DOM)
       lucide.createIcons();
     }
 
@@ -246,7 +238,7 @@
       }catch(e){ showToast('โหลดข้อมูลไม่สำเร็จ: '+e.message,'err'); }
     }
 
-    // Actions
+    // Events
     $('#btnRefresh').addEventListener('click', async ()=>{
       try{ const { devices } = await apiGet('state'); paint(devices); showToast('อัปเดตข้อมูลแล้ว'); }
       catch(e){ showToast('รีเฟรชไม่สำเร็จ: '+e.message,'err'); }
@@ -254,7 +246,7 @@
 
     $('#btnCo').addEventListener('click', async ()=>{
       const payload = { device_code:$('#coDevice').value, shop:$('#coShop').value, emp_id:$('#coEmp').value.trim() };
-      if(!payload.emp_id) { $('#coEmp').focus(); return showToast('กรอกรหัสพนักงานก่อน','err'); }
+      if(!payload.emp_id){ $('#coEmp').focus(); return showToast('กรอกรหัสพนักงานก่อน','err'); }
       try{ await apiPost('checkout', payload); showToast('เบิกสำเร็จ'); $('#coEmp').value=''; $('#btnRefresh').click(); }
       catch(e){ showToast(e.message,'err'); }
     });
@@ -265,18 +257,13 @@
       catch(e){ showToast(e.message,'err'); }
     });
 
-    // 🔒 Clear All (ต้องใส่รหัสผ่าน 6515)
+    // Clear All (password 6515)
     $('#btnClearAll').addEventListener('click', async ()=>{
       if(!confirm('ยืนยันจะ Clear All? การกระทำนี้จะรีเซ็ตสถานะอุปกรณ์ทั้งหมดเป็น “ว่าง”')) return;
       const pwd = prompt('กรุณาใส่รหัสผ่านผู้ดูแล:');
       if(pwd !== '6515'){ showToast('รหัสผ่านไม่ถูกต้อง','err'); return; }
-      try{
-        await apiPost('clearAll', {});
-        showToast('เคลียร์ข้อมูลสำเร็จ');
-        $('#btnRefresh').click();
-      }catch(e){
-        showToast('ล้มเหลว: '+e.message, 'err');
-      }
+      try{ await apiPost('clearAll', {}); showToast('เคลียร์ข้อมูลสำเร็จ'); $('#btnRefresh').click(); }
+      catch(e){ showToast('ล้มเหลว: '+e.message,'err'); }
     });
 
     document.addEventListener('DOMContentLoaded', ()=>{ loadInitial(); lucide.createIcons(); });
